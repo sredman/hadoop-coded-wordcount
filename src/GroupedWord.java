@@ -24,6 +24,10 @@ public class GroupedWord implements WritableComparable<GroupedWord> {
 		return word;
 	}
 	
+	public String[] getLocations() {
+		return splitLocations;
+	}
+
 	public void set(String[] splitLocations, String word) {
 		this.splitLocations = splitLocations;
 		this.word = word;

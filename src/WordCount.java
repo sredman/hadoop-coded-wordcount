@@ -6,10 +6,14 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.partition.HashPartitioner;
 import org.apache.hadoop.util.ToolRunner;
 
 public class WordCount {
@@ -41,6 +45,8 @@ public class WordCount {
 	 * per-key
 	 */
 	public static class WordCountCombiner extends Reducer<GroupedWord, BroadcastValue, GroupedWord, BroadcastValue> {
+		private static final Log LOG = LogFactory.getLog(WordCountCombiner.class);
+
 		private BroadcastValue broadcastValue = new BroadcastValue();
 		
 		// Keep a node-local mapping of words to values
