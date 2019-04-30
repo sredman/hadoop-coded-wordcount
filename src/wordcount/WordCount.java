@@ -1,3 +1,4 @@
+package wordcount;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -9,8 +10,8 @@ import java.util.TreeMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.lang.NotImplementedException;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
@@ -23,14 +24,38 @@ public class WordCount {
 	private static Map<GroupedWord, Integer> locallySeenValues;
 
 	public static class TokenizerMapper extends Mapper<Object, Text, GroupedWord, BroadcastValue> {
+		private static final Log LOG = LogFactory.getLog(TokenizerMapper.class);
 		private GroupedWord groupedWord = new GroupedWord();
 		private BroadcastValue unicastValue = new BroadcastValue();
+		private FileLocationsLookup locationMapping;
 
+		@Override
+		public void setup(Context context) throws IOException {
+			try {
+				locationMapping = new FileLocationsLookup("BlockLocationInfo.xml");
+			} catch (Exception e) {
+				e.printStackTrace();
+				// Mapper.setup is not able to handle many kinds of exceptions. Try this on for size!
+				throw new RuntimeException(e);
+			}
+		}
+		
 		@Override
 		public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
 			StringTokenizer itr = new StringTokenizer(value.toString());
 			while (itr.hasMoreTokens()) {
 				String word = itr.nextToken();
+				String[] locations = context.getInputSplit().getLocations();
+				if (locations.length < 1) {
+					// Definitionally, the block must be at at least one location (otherwise how are we seeing it?)
+					// Therefore, if we see this case, there must be a Hadoop bug
+					// Work around that with a hard-coded mapping!
+					long offset = ((LongWritable) key).get();
+					if (offset % locationMapping.blockSize == 0) {
+						LOG.info("Overriding locations at offset " + offset);
+					}
+					locations = locationMapping.getBlockContainingOffset((int)offset).locations.toArray(locations);
+				}
 				groupedWord.set(context.getInputSplit().getLocations(), word);
 				unicastValue.set(Arrays.asList(word), 1);
 				context.write(groupedWord, unicastValue);

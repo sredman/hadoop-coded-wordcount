@@ -1,0 +1,37 @@
+<!--BlockSize is in KiB-->
+<BlockLocationInfo blockSize="131072">
+  <blocks>
+    <block0 size="134217728">
+      <location>node1</location>
+      <location>node2</location>
+    </block0>
+    <block1 size="134217728">
+      <location>node2</location>
+      <location>node3</location>
+    </block1>
+    <block2 size="134217728">
+      <location>node2</location>
+      <location>node1</location>
+    </block2>
+    <block3 size="134217728">
+      <location>node2</location>
+      <location>node1</location>
+    </block3>
+    <block4 size="134217728">
+      <location>node2</location>
+      <location>node1</location>
+    </block4>
+    <block5 size="134217728">
+      <location>node2</location>
+      <location>node3</location>
+    </block5>
+    <block6 size="134217728">
+      <location>node3</location>
+      <location>node1</location>
+    </block6>
+    <block7 size="134217728">
+      <location>node2</location>
+      <location>node3</location>
+    </block7>
+  </blocks>
+</BlockLocationInfo>
