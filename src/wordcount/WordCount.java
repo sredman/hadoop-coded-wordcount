@@ -56,7 +56,7 @@ public class WordCount {
 					}
 					locations = locationMapping.getBlockContainingOffset((int)offset).locations.toArray(locations);
 				}
-				groupedWord.set(context.getInputSplit().getLocations(), word);
+				groupedWord.set(locations, word);
 				unicastValue.set(Arrays.asList(word), 1);
 				context.write(groupedWord, unicastValue);
 			}
