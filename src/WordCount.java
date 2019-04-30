@@ -79,9 +79,10 @@ public class WordCount {
 			cacheOrSend(key, broadcastValue, context);
 			if (locallySeenValues.containsKey(key)) {
 				// This should never happen, but I could be wrong
-				LOG.info("Unexpectedly appending to existing locally-seen value from Collector");
 				int oldCount = locallySeenValues.get(key);
-				locallySeenValues.put(key, oldCount + sum);
+				int newCount = oldCount + sum;
+				LOG.info("Unexpectedly appending to existing locally-seen value from Collector. Previously had " + oldCount + ", now have " + newCount);
+				locallySeenValues.put(key, newCount);
 			} else {
 				locallySeenValues.put(key, sum);
 			}
