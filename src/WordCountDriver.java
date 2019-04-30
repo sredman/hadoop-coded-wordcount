@@ -17,24 +17,25 @@ public class WordCountDriver extends Configured implements Tool {
 		PACKETS_SENT,
 	}
 
-	public Class <? extends Mapper<Object, Text, Text, IntWritable>> mapper;
-	public Class <? extends Reducer<Text, IntWritable, Text, IntWritable>> reducer;
-
+	public Class<? extends Mapper<Object, Text, GroupedWord, BroadcastValue>> mapper;
+	
 	// Combiner runs a reduce-like operation to collect the outputs of the map operation
 	// In this phase, examine how the file is split and "broadcast" it to all nodes
-	public Class <? extends Reducer<Text, IntWritable, Text, IntWritable>> combiner;
+	public Class<? extends Reducer<GroupedWord, BroadcastValue, GroupedWord, BroadcastValue>> combiner;
+	
+	public Class<? extends Reducer<GroupedWord,BroadcastValue,Text,IntWritable>> reducer;
 
 	// The partitioner assigns keys to reducer nodes. In this phase, sort non-broadcast keys
 	// normally, but make sure to send "broadcast" packets to their specified location
-	public Class <? extends Partitioner<Text, IntWritable>> partitioner;
+	public Class<? extends Partitioner<Text, IntWritable>> partitioner;
 
 	WordCountDriver(
-			Class<? extends Mapper<Object, Text, Text, IntWritable>> mapper,
-			Class<? extends Reducer<Text, IntWritable, Text, IntWritable>> reducer,
-			Class<? extends Reducer<Text, IntWritable, Text, IntWritable>> combiner) {
+			Class<? extends Mapper<Object, Text, GroupedWord, BroadcastValue>> mapper,
+			Class<? extends Reducer<GroupedWord, BroadcastValue, GroupedWord, BroadcastValue>> combiner,
+			Class<? extends Reducer<GroupedWord, BroadcastValue, Text, IntWritable>> reducer) {
 		this.mapper = mapper;
-		this.reducer = reducer;
 		this.combiner = combiner;
+		this.reducer = reducer;
 	}
 
 	@Override
@@ -44,10 +45,13 @@ public class WordCountDriver extends Configured implements Tool {
 
 		job.setJarByClass(WordCount.class);
 		job.setMapperClass(mapper);
-		job.setCombinerClass(reducer);
-		job.setReducerClass(combiner);
+		job.setCombinerClass(combiner);
+		job.setReducerClass(reducer);
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(IntWritable.class);
+		
+		job.setMapOutputKeyClass(GroupedWord.class);
+		job.setMapOutputValueClass(BroadcastValue.class);
 
 		FileInputFormat.addInputPath(job, new Path(args[0]));
 		FileOutputFormat.setOutputPath(job, new Path(args[1]));
