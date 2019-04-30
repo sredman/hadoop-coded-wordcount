@@ -62,23 +62,27 @@ public class WordCount {
 				sum += val.get();
 				words = val.words;
 			}
-			// TODO: Encode and broadcast values
 			broadcastValue.set(words, sum);
-			cacheOrSend(key, broadcastValue);
+			cacheOrSend(key, broadcastValue, context);
+		}
 
+		private void send(GroupedWord key, BroadcastValue val, Context context) throws IOException, InterruptedException {
+			context.write(key, val);
 			// Record the fact that we "sent" a packet
 			context.getCounter(WordCountDriver.COMMUNICATION_LOAD_COUNTER.PACKETS_SENT).increment(1);
 		}
 
-		private void cacheOrSend(GroupedWord key, BroadcastValue val) {
+		private void cache(GroupedWord key, BroadcastValue val) {
 			BroadcastValue cacheableValue = new BroadcastValue(val);
 			if (!cachedValues.containsKey(key)) {
 				GroupedWord cacheableKey = new GroupedWord(key);
 				cachedValues.put(cacheableKey, new LinkedList<>());
 			}
 			cachedValues.get(key).add(cacheableValue);
-			
-			//TODO: Check for grouping opportunities
+		}
+
+		private void cacheOrSend(GroupedWord key, BroadcastValue val, Context context) {
+			cache(key, val);
 		}
 
 		@Override
@@ -88,7 +92,7 @@ public class WordCount {
 				for (BroadcastValue val : cachedValues.get(key)) {
 					assert val.words.size() == 1 : "Cached value was ready to be delivered";
 					assert key.getWord() == val.words.get(0) : "Key does not match value";
-					context.write(key, val);
+					send(key, val, context);
 				}
 			}
 		}
