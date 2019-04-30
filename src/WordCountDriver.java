@@ -15,6 +15,7 @@ public class WordCountDriver extends Configured implements Tool {
 	
 	public static enum COMMUNICATION_LOAD_COUNTER {
 		PACKETS_SENT,
+		ENCODED_PACKETS_SENT,
 	}
 
 	public Class<? extends Mapper<Object, Text, GroupedWord, BroadcastValue>> mapper;

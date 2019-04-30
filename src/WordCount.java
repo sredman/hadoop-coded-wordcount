@@ -145,6 +145,8 @@ public class WordCount {
 						}
 					}
 				}
+
+				LOG.debug("Found potentially encode-able key which overlaps at " + overlappingLocations.size() + " locations");
 				// Hardcoded for 3 nodes and 2 copies in following block
 				if (overlappingLocations.size() == 1) {
 					// Can possibly encode! Check targets
@@ -177,6 +179,7 @@ public class WordCount {
 			context.write(combinableKey, encodedValue);
 			// Record the fact that we sent *only one* packet
 			context.getCounter(WordCountDriver.COMMUNICATION_LOAD_COUNTER.PACKETS_SENT).increment(1);
+			context.getCounter(WordCountDriver.COMMUNICATION_LOAD_COUNTER.ENCODED_PACKETS_SENT).increment(1);
 		}
 
 		@Override
