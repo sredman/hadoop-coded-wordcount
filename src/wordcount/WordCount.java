@@ -129,7 +129,7 @@ public class WordCount {
 			// Luckily, we can do away with one check: We don't care which two nodes are targeted for the Reduce step,
 			// we just care that two different nodes are targeted, because Hadoop tosses everything into one big bucket anyway
 
-			int newValueTarget = partitioner.getPartition(key, val, 3);
+			int newValueTarget = partitioner.getPartition(key, val, context.getNumReduceTasks());
 			List<String> newValueLocations = Arrays.asList(key.getLocations());
 
 			if (newValueLocations.size() != 2) {
@@ -149,7 +149,7 @@ public class WordCount {
 
 				List<String> cachedValueLocations = Arrays.asList(cachedKey.getLocations());
 
-				int cachedValueTarget = partitioner.getPartition(cachedKey, null, 3);
+				int cachedValueTarget = partitioner.getPartition(cachedKey, null, context.getNumReduceTasks());
 
 				if (newValueTarget == cachedValueTarget) {
 					// Targeting same node. No way to encode.
@@ -171,7 +171,6 @@ public class WordCount {
 					}
 				}
 
-				LOG.debug("Found potentially encode-able key which overlaps at " + overlappingLocations.size() + " locations");
 				// Hardcoded for 3 nodes and 2 copies in following block
 				if (overlappingLocations.size() == 1) {
 					// Can possibly encode! Check targets
@@ -197,6 +196,8 @@ public class WordCount {
 					Arrays.asList(val.words.get(0), encodingValue.words.get(0)), // Target both words
 					val.value ^ encodingValue.value // Use simple XOR encoding
 					);
+			
+			LOG.info("Broadcasting for " + encodedValue.words);
 
 			// Cheat: Hadoop does not provide broadcast (as far as I'm aware) so send one packet
 			// of each key which will be delivered unicast to each node, but we'll count it as one
